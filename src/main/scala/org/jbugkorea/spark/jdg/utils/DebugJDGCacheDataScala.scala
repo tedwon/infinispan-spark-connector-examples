@@ -6,7 +6,7 @@ import org.infinispan.spark.domain.Book
 import scala.collection.JavaConverters._
 
 
-object DebugCacheDataScala {
+object DebugJDGCacheDataScala {
   def main(args: Array[String]): Unit = {
     // Obtain the remote cache
     val cacheManager = new RemoteCacheManager

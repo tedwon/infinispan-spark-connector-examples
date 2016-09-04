@@ -4,7 +4,7 @@ import org.infinispan.client.hotrod.{RemoteCache, RemoteCacheManager}
 import org.infinispan.spark.domain.Book
 
 
-object PopulateDataScala {
+object PopulateJDGCacheDataScala {
 
   def main(args: Array[String]): Unit = {
     // Obtain the remote cache
