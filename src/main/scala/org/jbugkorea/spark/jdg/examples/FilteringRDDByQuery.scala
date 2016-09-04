@@ -15,13 +15,17 @@ import org.infinispan.query.remote.client.ProtobufMetadataManagerConstants
 import org.infinispan.spark.domain.{Address, AddressMarshaller, Person, PersonMarshaller}
 import org.infinispan.spark.rdd.InfinispanRDD
 
+/**
+  * @see https://access.redhat.com/documentation/en-US/Red_Hat_JBoss_Data_Grid/7.0/html-single/Developer_Guide/index.html#Using_the_Infinispan_Query_DSL_with_Spark
+  */
 object FilteringRDDByQuery {
 
   def main(args: Array[String]) {
     Logger.getLogger("org").setLevel(Level.WARN)
 
+    // Declaring Protocol Buffer message types
     val protoFile =
-      """
+    """
       package org.infinispan.spark.domain;
       message Person {
          required string name = 1;
@@ -33,13 +37,18 @@ object FilteringRDDByQuery {
          required int32 number = 2;
          required string country = 3;
       }
-      """.stripMargin
+    """.stripMargin
 
     // Obtain the remote cache
     lazy val cacheManager: RemoteCacheManager = {
       val rcm = new RemoteCacheManager(
-        new ConfigurationBuilder().addServer().host("127.0.0.1").port(11222).marshaller(new ProtoStreamMarshaller).build()
+        new ConfigurationBuilder().addServer()
+          .host("127.0.0.1").port(11222)
+          .host("127.0.0.1").port(11372)
+          .marshaller(new ProtoStreamMarshaller)
+          .build()
       )
+      // Registering a Protocol Buffers schema file
       rcm.getCache(ProtobufMetadataManagerConstants.PROTOBUF_METADATA_CACHE_NAME).put("test.proto", protoFile)
 
       val serCtx = ProtoStreamMarshaller.getSerializationContext(rcm)
@@ -49,25 +58,46 @@ object FilteringRDDByQuery {
       rcm
     }
 
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    // Populate sample cache data
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
+    val defaultCache = cacheManager.getCache[Int, Person]
+    defaultCache.clear()
+    (1 to 100).foreach { idx =>
+      defaultCache.put(idx, new Person(s"name$idx", idx, new Address(s"street$idx", idx, "N/A")));
+      //      println(idx)
+      //      Thread.sleep(100)
+    }
+
+
+
+
+
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    // Start example
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
     val protoConfig = {
       val map = new util.HashMap[String, String]()
       map.put("test.proto", protoFile)
       map
     }
 
-    val defaultCache = cacheManager.getCache[Int, Person]
-    defaultCache.clear()
-    (1 to 20000000).foreach { idx =>
-      defaultCache.put(idx, new Person(s"name$idx", idx, new Address(s"street$idx", idx, "N/A")));
-      println(idx)
-      Thread.sleep(100)
-    }
-
     val infinispanHost = "127.0.0.1:11222;127.0.0.1:11372"
 
     val conf = new SparkConf()
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .setAppName("spark-infinispan-example-filter-RDD-scala")
+      .setAppName("jdg-spark-connector-example-filter-RDD-scala")
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
@@ -76,23 +106,48 @@ object FilteringRDDByQuery {
     configuration.put("infinispan.rdd.query.proto.marshallers", Seq(classOf[AddressMarshaller], classOf[PersonMarshaller]))
     configuration.put("infinispan.client.hotrod.server_list", infinispanHost)
 
+    val infinispanRDD = new InfinispanRDD[Int, Person](sc, configuration)
 
-    val rdd = new InfinispanRDD[Int, Person](sc, configuration)
+
+
 
     val query = Search.getQueryFactory(defaultCache)
       //      .from(classOf[Person]).having("address.number").gt(10)
-      .from(classOf[Person]).having("name").like("name1%")
+      .from(classOf[Person]).having("name").like("name2%")
       .toBuilder[RemoteQuery].build()
 
-    val filteredRdd = rdd.filterByQuery[Person](query, classOf[Person])
+    val filteredRDD = infinispanRDD.filterByQuery[Person](query, classOf[Person])
 
-    filteredRdd.foreach(println)
+    //    filteredRDD.foreach(println)
 
-    val filteredPersonRdd: RDD[Person] = filteredRdd.values
+    val filteredPersonRDD: RDD[Person] = filteredRDD.values
 
-    val count = filteredPersonRdd.count()
-
+    val count = filteredPersonRDD.count()
+    //
     println(count)
 
+    filteredPersonRDD.foreach(x => {
+      val name = x.getName
+      println(name)
+    })
+
+
+
+
+
+
+
+
+
+
+    // wait infinitely
+    getClass synchronized {
+      try
+        getClass.wait()
+      catch {
+        case e: InterruptedException => {
+        }
+      }
+    }
   }
 }

@@ -11,6 +11,9 @@ import org.infinispan.spark.domain.Book
 import scala.collection.JavaConverters._
 
 
+/**
+  * Good feature to share RDD.
+  */
 object WriteRDDToJDGScala {
   def main(args: Array[String]) {
 
@@ -41,10 +44,23 @@ object WriteRDDToJDGScala {
     // Debug cache data
     val cacheManager = new RemoteCacheManager
     val cache: RemoteCache[Long, Book] = cacheManager.getCache()
+    println()
     cache.keySet().asScala
       .foreach(key => {
         val value = cache.get(key)
         println(s"key=$key value=$value")
       })
+
+    // wait infinitely
+    getClass synchronized {
+      try
+        getClass.wait()
+      catch {
+        case e: InterruptedException => {
+        }
+      }
+    }
+
+    sc.stop()
   }
 }

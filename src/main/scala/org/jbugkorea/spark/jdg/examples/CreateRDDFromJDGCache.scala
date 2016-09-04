@@ -9,14 +9,30 @@ import org.infinispan.client.hotrod.{RemoteCache, RemoteCacheManager}
 import org.infinispan.spark.domain.Book
 import org.infinispan.spark.rdd.InfinispanRDD
 
+/**
+  * Get cache data and create RDD.
+  * @see https://access.redhat.com/documentation/en-US/Red_Hat_JBoss_Data_Grid/7.0/html-single/Developer_Guide/index.html#Creating_and_USing_RDDs
+  */
 object CreateRDDFromJDGCache {
   def main(args: Array[String]) {
 
     Logger.getLogger("org").setLevel(Level.WARN)
 
+    val cacheName = "default"
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    // Populate sample cache data
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
     // Obtain the remote cache
     val cacheManager = new RemoteCacheManager
-    val cache: RemoteCache[Integer, Book] = cacheManager.getCache()
+    val cache = cacheManager.getCache[Integer, Book](cacheName)
+    // Remove all data
+    cache.clear()
 
     // Put some sample data to the remote cache
     val bookOne = new Book("Linux Bible", "desc", 2015, "Chris")
@@ -26,16 +42,28 @@ object CreateRDDFromJDGCache {
     cache.put(2, bookTwo)
     cache.put(2, bookThree)
 
+
+
+
+
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+    //
+    // Start example
+    //
+    /////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////
+
     val infinispanHost = "127.0.0.1:11222;127.0.0.1:11372"
 
     val conf = new SparkConf()
-      .setAppName("spark-infinispan-example-RDD-scala")
+      .setAppName("jdg-spark-connector-example-RDD-scala")
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
     val infinispanProperties = new Properties
     infinispanProperties.put("infinispan.client.hotrod.server_list", infinispanHost)
-    infinispanProperties.put("infinispan.rdd.cacheName", "default")
+    infinispanProperties.put("infinispan.rdd.cacheName", cacheName)
 
     // Create RDD from cache
     val infinispanRDD = new InfinispanRDD[Integer, Book](sc, configuration = infinispanProperties)
@@ -47,5 +75,6 @@ object CreateRDDFromJDGCache {
     val count = booksRDD.count()
 
     println(count)
+
   }
 }

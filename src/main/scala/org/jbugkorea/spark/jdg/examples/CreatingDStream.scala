@@ -20,7 +20,7 @@ object CreatingDStream {
 
     val conf = new SparkConf()
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .setAppName("spark-infinispan-example-filter-RDD-scala")
+      .setAppName("jdg-spark-connector-example-filter-RDD-scala")
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
@@ -36,7 +36,6 @@ object CreatingDStream {
     val createdBooksRDD = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
 
     // Reduce last 30 seconds of data, every 10 seconds
-    //    val windowedRDD: DStream[Long] = createdBooksRDD.count().reduceByWindow(_ + _, Seconds(30), Seconds(10))
     val windowedRDD: DStream[Long] = createdBooksRDD.count().reduceByWindow(_ + _, Seconds(3), Seconds(1))
 
     // Prints the results, couting the number of occurences in each individual RDD
