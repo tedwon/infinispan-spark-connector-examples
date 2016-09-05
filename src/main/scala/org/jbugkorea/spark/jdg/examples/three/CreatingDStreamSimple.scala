@@ -36,6 +36,7 @@ object CreatingDStreamSimple {
 
     val ssc = new StreamingContext(sc, Seconds(1))
 
+    // Create a Spark DStream from cache-level events
     val stream = new InfinispanInputDStream[Int, String](ssc, StorageLevel.MEMORY_ONLY, configuration)
 
 //    stream.print()
