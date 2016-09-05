@@ -49,6 +49,7 @@ object CreatingDStreamSimple {
     createdEventRDD.print()
 
     // Writing to JBoss Data Grid with DStreams
+    // Use implicit method writeToInfinispan with JDG RDD configuration as input
     configuration.put("infinispan.rdd.cacheName", "default")
     createdEventRDD.writeToInfinispan(configuration)
 
