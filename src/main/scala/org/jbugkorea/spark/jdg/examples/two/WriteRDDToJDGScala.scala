@@ -1,4 +1,4 @@
-package org.jbugkorea.spark.jdg.examples
+package org.jbugkorea.spark.jdg.examples.two
 
 import java.util.Properties
 
@@ -19,6 +19,11 @@ object WriteRDDToJDGScala {
 
     Logger.getLogger("org").setLevel(Level.WARN)
 
+    val cacheManager = new RemoteCacheManager
+    val cache: RemoteCache[Long, Book] = cacheManager.getCache()
+    // Remove all data
+    cache.clear()
+
     val infinispanHost = "127.0.0.1:11222;127.0.0.1:11372"
 
     val conf = new SparkConf()
@@ -26,10 +31,10 @@ object WriteRDDToJDGScala {
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
+    // Create an RDD from local data collection
     // Create an RDD of Books
-    val bookOne = new Book("Linux Bible", "desc", 2015, "Chris")
-    val bookTwo = new Book("Java 8 in Action", "desc", 2014, "Brian")
-
+    val bookOne = new Book("Write RDD to Cache - Linux Bible", "desc", 2015, "Chris")
+    val bookTwo = new Book("Write RDD to Cache - Java 8 in Action", "desc", 2014, "Brian")
     val sampleBookRDD = sc.parallelize(Seq(bookOne, bookTwo))
     val pairsRDD = sampleBookRDD.zipWithIndex().map(_.swap)
 
@@ -42,14 +47,15 @@ object WriteRDDToJDGScala {
 
 
     // Debug cache data
-    val cacheManager = new RemoteCacheManager
-    val cache: RemoteCache[Long, Book] = cacheManager.getCache()
     println()
+    println("####################################")
     cache.keySet().asScala
       .foreach(key => {
         val value = cache.get(key)
         println(s"key=$key value=$value")
       })
+    println("####################################")
+    println()
 
     // wait infinitely
     getClass synchronized {

@@ -1,4 +1,4 @@
-package org.jbugkorea.spark.jdg.examples
+package org.jbugkorea.spark.jdg.examples.five
 
 import java.util
 import java.util.Properties
@@ -16,6 +16,8 @@ import org.infinispan.spark.domain.{Address, AddressMarshaller, Person, PersonMa
 import org.infinispan.spark.rdd.InfinispanRDD
 
 /**
+  * Use JDG server side filters to create a cache based RDD.</p>
+  * Using Infinispan Query DSL
   * @see https://access.redhat.com/documentation/en-US/Red_Hat_JBoss_Data_Grid/7.0/html-single/Developer_Guide/index.html#Using_the_Infinispan_Query_DSL_with_Spark
   */
 object FilteringRDDByQuery {
@@ -23,7 +25,8 @@ object FilteringRDDByQuery {
   def main(args: Array[String]) {
     Logger.getLogger("org").setLevel(Level.WARN)
 
-    // Declaring Protocol Buffer message types
+    // Data in the cache must be encoded with protobuf for the querying DSL
+    // Declaring Protocol Buffer message types: schema
     val protoFile =
     """
       package org.infinispan.spark.domain;
@@ -61,17 +64,17 @@ object FilteringRDDByQuery {
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
     //
-    // Populate sample cache data
+    // Populate sample data into cache
     //
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
 
     val defaultCache = cacheManager.getCache[Int, Person]
+    // Remove all data
     defaultCache.clear()
+    // Populate sample data
     (1 to 100).foreach { idx =>
       defaultCache.put(idx, new Person(s"name$idx", idx, new Address(s"street$idx", idx, "N/A")));
-      //      println(idx)
-      //      Thread.sleep(100)
     }
 
 
@@ -82,7 +85,7 @@ object FilteringRDDByQuery {
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
     //
-    // Start example
+    // Start real example code from here
     //
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
@@ -113,7 +116,7 @@ object FilteringRDDByQuery {
 
     val query = Search.getQueryFactory(defaultCache)
       //      .from(classOf[Person]).having("address.number").gt(10)
-      .from(classOf[Person]).having("name").like("name2%")
+      .from(classOf[Person]).having("name").like("name1%")
       .toBuilder[RemoteQuery].build()
 
     val filteredRDD = infinispanRDD.filterByQuery[Person](query, classOf[Person])
@@ -123,13 +126,25 @@ object FilteringRDDByQuery {
     val filteredPersonRDD: RDD[Person] = filteredRDD.values
 
     val count = filteredPersonRDD.count()
-    //
-    println(count)
+
+    println()
+    println("####################################")
+    println(s"The filteredPersonRDD has $count records.")
+    println("####################################")
+    println()
+
+
+    println()
+    println("####################################")
+    println("[Debug RDD]")
 
     filteredPersonRDD.foreach(x => {
       val name = x.getName
       println(name)
     })
+
+    println("####################################")
+    println()
 
 
 

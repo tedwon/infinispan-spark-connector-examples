@@ -1,11 +1,11 @@
-package org.jbugkorea.spark.jdg.examples
+package org.jbugkorea.spark.jdg.examples.one
 
 import java.util.Properties
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.rdd.RDD
 import org.apache.spark.{SparkConf, SparkContext}
-import org.infinispan.client.hotrod.{RemoteCache, RemoteCacheManager}
+import org.infinispan.client.hotrod.RemoteCacheManager
 import org.infinispan.spark.domain.Book
 import org.infinispan.spark.rdd.InfinispanRDD
 
@@ -18,12 +18,12 @@ object CreateRDDFromJDGCache {
 
     Logger.getLogger("org").setLevel(Level.WARN)
 
-    val cacheName = "default"
+    val cacheName = "book"
 
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
     //
-    // Populate sample cache data
+    // Populate sample data into cache
     //
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
@@ -35,12 +35,15 @@ object CreateRDDFromJDGCache {
     cache.clear()
 
     // Put some sample data to the remote cache
-    val bookOne = new Book("Linux Bible", "desc", 2015, "Chris")
-    val bookTwo = new Book("Java 8 in Action", "desc", 2014, "Brian")
-    val bookThree = new Book("Spark", "desc", 2014, "Brian")
+    // title and author
+    val bookOne = new Book("Linux Bible", "Chris")
+    val bookTwo = new Book("Java 8 in Action", "Brian")
+    val bookThree = new Book("Spark", "Brian")
     cache.put(1, bookOne)
     cache.put(2, bookTwo)
-    cache.put(2, bookThree)
+    cache.put(3, bookThree)
+
+    val cacheSize = cache.size()
 
 
 
@@ -49,7 +52,7 @@ object CreateRDDFromJDGCache {
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
     //
-    // Start example
+    // Start real example code from here
     //
     /////////////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////
@@ -61,20 +64,80 @@ object CreateRDDFromJDGCache {
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
+    // the connector's configurations
+    // https://github.com/infinispan/infinispan-spark#supported-configurations
     val infinispanProperties = new Properties
+    // List of servers
     infinispanProperties.put("infinispan.client.hotrod.server_list", infinispanHost)
+    // The name of the cache that will back the RDD
     infinispanProperties.put("infinispan.rdd.cacheName", cacheName)
 
     // Create RDD from cache
+    // key: integer
+    // value: book
     val infinispanRDD = new InfinispanRDD[Integer, Book](sc, configuration = infinispanProperties)
 
+    // Debug RDD
+    println()
+    println("####################################")
+    println("[Debug RDD]")
+
     infinispanRDD.foreach(println)
+
+    println("####################################")
+    println()
+
 
     val booksRDD: RDD[Book] = infinispanRDD.values
 
     val count = booksRDD.count()
 
-    println(count)
+    println()
+    println("####################################")
+    println(s"This book RDD has $count records.")
+    println(s"$cacheName cache has $cacheSize entries.")
+    println("####################################")
+    println()
+
+
+
+
+
+
+
+    // author's book count: word count
+    // return RDD(count, author)
+    val authors: RDD[(Int, String)] = infinispanRDD
+      .map(x => x._2.getAuthor)
+      .map(author => (author, 1))
+      .reduceByKey(_ + _)
+      .map(_.swap)
+
+    //    authors.foreach(println)
+
+    println()
+    println("####################################")
+    println("[Print RDD : author's book count]")
+
+    authors.foreach(x => {
+      val count = x._1
+      val author = x._2
+      println(s"Author=$author => Count=$count")
+    })
+
+    println("####################################")
+    println()
+
+
+    // wait infinitely
+    getClass synchronized {
+      try
+        getClass.wait()
+      catch {
+        case e: InterruptedException => {
+        }
+      }
+    }
 
   }
 }

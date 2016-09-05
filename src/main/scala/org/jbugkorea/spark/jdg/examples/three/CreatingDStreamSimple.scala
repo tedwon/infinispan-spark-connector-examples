@@ -1,16 +1,20 @@
-package org.jbugkorea.spark.jdg.examples
+package org.jbugkorea.spark.jdg.examples.three
 
 import java.util.Properties
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.storage.StorageLevel
-import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.infinispan.spark.domain.User
 import org.infinispan.spark.stream._
 
-
+/**
+  * Create a Spark DStream from cache-level events.
+  * </p>
+  * Insert, Modify and Delete event in a cache.
+  * </p>
+  * http://localhost:4040
+  */
 object CreatingDStreamSimple {
 
   def main(args: Array[String]) {
@@ -20,7 +24,7 @@ object CreatingDStreamSimple {
 
     val conf = new SparkConf()
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .setAppName("jdg-spark-connector-example-filter-RDD-scala")
+      .setAppName("jdg-spark-connector-example-DStream-scala")
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
@@ -36,8 +40,7 @@ object CreatingDStreamSimple {
 
     val createdEventRDD = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
 
-    createdEventRDD.print()
-
+//    createdEventRDD.print()
 
 
     // Start the processing

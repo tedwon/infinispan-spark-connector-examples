@@ -78,8 +78,8 @@ public class Book implements Serializable {
     public String toString() {
         final StringBuffer sb = new StringBuffer("Book{");
         sb.append("title='").append(title).append('\'');
-        sb.append(", description='").append(description).append('\'');
-        sb.append(", publicationYear=").append(publicationYear);
+//        sb.append(", description='").append(description).append('\'');
+//        sb.append(", publicationYear=").append(publicationYear);
         sb.append(", author='").append(author).append('\'');
         sb.append('}');
         return sb.toString();

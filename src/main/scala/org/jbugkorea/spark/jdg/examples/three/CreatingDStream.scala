@@ -1,4 +1,4 @@
-package org.jbugkorea.spark.jdg.examples
+package org.jbugkorea.spark.jdg.examples.three
 
 import java.util.Properties
 
@@ -20,7 +20,7 @@ object CreatingDStream {
 
     val conf = new SparkConf()
       .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-      .setAppName("jdg-spark-connector-example-filter-RDD-scala")
+      .setAppName("jdg-spark-connector-example-DStream-scala")
       .setMaster("local[*]")
     val sc = new SparkContext(conf)
 
