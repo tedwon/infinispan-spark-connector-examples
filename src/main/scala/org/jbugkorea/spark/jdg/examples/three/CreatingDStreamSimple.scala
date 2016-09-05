@@ -4,8 +4,10 @@ import java.util.Properties
 
 import org.apache.log4j.{Level, Logger}
 import org.apache.spark.storage.StorageLevel
+import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import org.apache.spark.{SparkConf, SparkContext}
+import org.infinispan.client.hotrod.event.ClientEvent.Type
 import org.infinispan.spark.stream._
 
 /**
@@ -38,9 +40,16 @@ object CreatingDStreamSimple {
 
 //    stream.print()
 
-    val createdEventRDD = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
+    val createdEventRDD: DStream[(Int, String)] = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
+      .map(x => {
+        (x._1, x._2)
+      })
 
-//    createdEventRDD.print()
+    createdEventRDD.print()
+
+    // Writing to JBoss Data Grid with DStreams
+    configuration.put("infinispan.rdd.cacheName", "default")
+    createdEventRDD.writeToInfinispan(configuration)
 
 
     // Start the processing
