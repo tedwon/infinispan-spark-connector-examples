@@ -28,8 +28,12 @@ $ mvn clean package
 $ mvn exec:java -Dexec.mainClass="org.jbugkorea.spark.jdg.examples.one.CreateRDDFromJDGCache"
 ```
 
+## Spark application UI
+
+* http://localhost:4040
 
 ## Infinispan Admin console 
+
 * Go to Admin console http://localhost:9990
 
 ## References
