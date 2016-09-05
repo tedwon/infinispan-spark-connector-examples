@@ -2,12 +2,35 @@
 
 ## Prerequisite: 
 
-### Download and Run Infinispan Cluster
+### 1. Install JDK 8
+### 2. Download and Run Infinispan Server
 
-* http://infinispan.org/download/#stable
-* Download the latest stable version of Infinispan
+* Download the latest version of Infinispan Server
+  * http://infinispan.org/download/#stable
+```sh
+$ wget http://downloads.jboss.org/infinispan/8.2.4.Final/infinispan-server-8.2.4.Final-bin.zip
+```
 * Unzip and cd <ISPN_HOME>
+* Run bin/add-user.sh
 * Run bin/domain.sh
+
+## Build
+
+```sh
+$ mvn clean package
+```
+
+## Run
+
+* Run objects in the org.jbugkorea.spark.jdg.examples package like below:
+
+```sh
+$ mvn exec:java -Dexec.mainClass="org.jbugkorea.spark.jdg.examples.one.CreateRDDFromJDGCache"
+```
+
+
+## Infinispan Admin console 
+* Go to Admin console http://localhost:9990
 
 ## References
 
@@ -17,3 +40,4 @@
 * http://blog.infinispan.org/2015/08/infinispan-spark-connector-01-released.html
 * http://infinispan.org/docs/stable/user_guide/user_guide.html
 * http://spark.apache.org/docs/1.6.2/programming-guide.html
+* https://hub.docker.com/r/gustavonalle/infinispan-spark/
