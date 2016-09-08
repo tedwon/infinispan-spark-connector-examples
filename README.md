@@ -20,12 +20,23 @@ $ wget http://downloads.jboss.org/infinispan/8.2.4.Final/infinispan-server-8.2.4
 $ mvn clean package
 ```
 
-## Run
+## Run in local
 
 * Run objects in the org.jbugkorea.spark.jdg.examples package like below:
 
 ```sh
 $ mvn exec:java -Dexec.mainClass="org.jbugkorea.spark.jdg.examples.one.CreateRDDFromJDGCache"
+```
+
+## Run over cluster
+
+* For instance,
+
+```sh
+$ "${SPARK_HOME}"/bin/spark-submit \
+  --class org.jbugkorea.spark.jdg.examples.one.CreateRDDFromJDGCache \
+  --master spark://localhost:7077 \
+  "${EXAMPLE_HOME}"/target/infinispan-spark-connector-examples-0.1.0-SNAPSHOT-jar-with-dependencies.jar
 ```
 
 ## Spark application UI
