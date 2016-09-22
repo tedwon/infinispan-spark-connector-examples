@@ -14,6 +14,10 @@ $ wget http://downloads.jboss.org/infinispan/8.2.4.Final/infinispan-server-8.2.4
 * Run bin/add-user.sh
 * Run bin/domain.sh
 
+## Add new cache
+
+* http://localhost:9990/console/index.html#/cluster/cluster/clustered
+
 ## Build
 
 ```sh
