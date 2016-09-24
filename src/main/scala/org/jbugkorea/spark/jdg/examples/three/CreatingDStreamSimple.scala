@@ -34,6 +34,18 @@ object CreatingDStreamSimple {
     configuration.put("infinispan.client.hotrod.server_list", infinispanHost)
     configuration.put("infinispan.rdd.cacheName", "stream")
 
+
+
+
+
+
+
+
+
+
+
+
+
     val ssc = new StreamingContext(sc, Seconds(1))
 
     // Create a Spark DStream from cache-level events
@@ -41,7 +53,8 @@ object CreatingDStreamSimple {
 
 //    stream.print()
 
-    val createdEventRDD: DStream[(Int, String)] = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
+//    val createdEventRDD: DStream[(Int, String)] = stream.filter { case (_, _, t) => t == org.infinispan.client.hotrod.event.ClientEvent.Type.CLIENT_CACHE_ENTRY_CREATED }
+    val createdEventRDD: DStream[(Int, String)] = stream
       .map(x => {
         (x._1, x._2)
       })
@@ -50,8 +63,10 @@ object CreatingDStreamSimple {
 
     // Writing to JBoss Data Grid with DStreams
     // Use implicit method writeToInfinispan with JDG RDD configuration as input
-    configuration.put("infinispan.rdd.cacheName", "default")
-    createdEventRDD.writeToInfinispan(configuration)
+    val writeConfiguration = new Properties
+    writeConfiguration.put("infinispan.client.hotrod.server_list", infinispanHost)
+    writeConfiguration.put("infinispan.rdd.cacheName", "default")
+    createdEventRDD.writeToInfinispan(writeConfiguration)
 
 
     // Start the processing
